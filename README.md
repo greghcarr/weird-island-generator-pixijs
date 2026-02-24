@@ -4,6 +4,8 @@
 
 A procedural island generator built with PixiJS and TypeScript. Every time you run it, a unique island is generated complete with irregular coastlines, mountain ranges, winding rivers, and organically grown forests.
 
+Try it out on [GitHub Pages!](https://greghcarr.github.io/weird-island-generator-pixijs/)
+
 ## Overview
 
 Weird Island Generator creates a randomized top-down island map using a collection of procedural generation techniques. No two islands are the same — the landmass shape, the placement of mountain ranges, the paths of rivers, and the spread of forests are all determined at runtime using seeded randomness and simulation.
