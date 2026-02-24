@@ -1,13 +1,16 @@
 import { Application } from "pixi.js";
 import { installGameFont } from "./font";
 import { World } from "./world";
-import { OCEAN_BLUE } from "./colors";
+import { convertHashTo0x, OCEAN_BLUE, SAND_TAN } from "./colors";
+import { LandmassOptions } from "./landmass";
+import { WorldOptions } from "./types";
 
 export class Game {
     private static readonly WORLD_WIDTH = 1000;
     private static readonly WORLD_HEIGHT = 1000;
 
     private app: Application;
+    private worldOptions!: WorldOptions;
     private world!: World;
 
     constructor() {
@@ -20,15 +23,46 @@ export class Game {
         await this.app.init({ background: OCEAN_BLUE, resizeTo: window });
         document.getElementById("pixi-container")!.appendChild(this.app.canvas);
 
-        this.world = new World(Game.WORLD_WIDTH, Game.WORLD_HEIGHT);
-        this.app.stage.addChild(this.world);
+        this.initWorldOptions();
 
-        this.world.populate();
+        this.createWorld();
+
+        this.populateWorld();
 
         window.addEventListener("resize", () => this.onResize());
         this.onResize();
 
         this.app.ticker.add((time) => this.update(time));
+    }
+
+    private initWorldOptions() {
+        const landmassOptionsTemplate = {
+            x: Game.WORLD_WIDTH / 2,
+            y: Game.WORLD_HEIGHT / 2,
+            width: Game.WORLD_WIDTH * 1,
+            height: Game.WORLD_HEIGHT * 1,
+            color: convertHashTo0x(SAND_TAN),
+        } as LandmassOptions;
+
+        let landmassOptionsList = [
+            {...landmassOptionsTemplate},
+        ];
+
+        this.worldOptions = {
+            landmassOptionsList,
+            numRivers: 3,
+            numMountainRanges: 5,
+            numForests: 3,
+        } as WorldOptions;
+    }
+
+    private createWorld() {
+        this.world = new World(Game.WORLD_WIDTH, Game.WORLD_HEIGHT);
+        this.app.stage.addChild(this.world);
+    }
+
+    private populateWorld() {
+        this.world.populate(this.worldOptions);
     }
 
     private onResize() {

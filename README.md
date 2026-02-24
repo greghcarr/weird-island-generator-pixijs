@@ -25,7 +25,7 @@ You will need [Node.js](https://nodejs.org/) installed.
 1. Clone the repository:
    ```bash
    git clone https://github.com/greghcarr/weird-island-generator-pixijs.git
-   cd weird-island-generator
+   cd weird-island-generator-pixijs
    ```
 
 2. Install dependencies:

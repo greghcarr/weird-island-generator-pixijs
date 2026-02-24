@@ -2,7 +2,9 @@ import { Container, Graphics } from "pixi.js";
 import { OCEAN_BLUE } from "./colors";
 
 export class River extends Container {
-    constructor(points: { x: number; y: number }[]) {
+    constructor(
+        points: { x: number; y: number }[]
+    ) {
         super();
         if (points.length < 2) return;
 

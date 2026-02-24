@@ -1,13 +1,13 @@
 import { Container } from "pixi.js";
 import { Tree } from "./tree";
-import { Landmass } from "./landmass";
+import { Landmass, LandmassOptions } from "./landmass";
 import { pointInPolygon } from "./helpers";
-import { convertHashTo0x, SAND_TAN } from "./colors";
 import { Mountain } from "./mountain";
 import { River } from "./river";
+import { WorldOptions } from "./types";
 
 export class World extends Container {
-    private landmass!: Landmass;
+    private landmasses!: Landmass[];
 
     constructor(
         private readonly worldWidth: number,
@@ -17,19 +17,22 @@ export class World extends Container {
         this.sortableChildren = true;
     }
 
-    populateLand(xScale: number = 1, yScale: number = 1) {
-        this.landmass = new Landmass(
-            this.worldWidth / 2,
-            this.worldHeight / 2,
-            this.worldWidth * xScale,
-            this.worldHeight * yScale,
-            convertHashTo0x(SAND_TAN),
-        );
-        this.addChild(this.landmass);
+    populateLand(
+        optionsList: LandmassOptions[]
+    ): void {
+        this.landmasses = [];
+        for (let options of optionsList){
+            this.landmasses.push(new Landmass(options));
+        }
+        for (const landmass of this.landmasses) {
+            this.addChild(landmass);
+        }
     }
 
-    makeRiver(boundaryPoints: { x: number; y: number }[], bounds: any) {
-        const points = this.landmass.getPoints();
+    makeRiver(
+        boundaryPoints: { x: number; y: number }[],
+        bounds: any
+    ): void {
         const riverPoints: { x: number; y: number }[] = [];
 
         // start from a random inland point
@@ -71,16 +74,24 @@ export class World extends Container {
         this.addChild(river);
     }
 
-    populateRivers(numRivers: number = 3) {
-        const points = this.landmass.getPoints();
-        const bounds = this.landmass.getBounds();
+    populateRivers(
+        landmass: Landmass,
+        numRivers: number = 3
+    ): void {
+        const points = landmass.getPoints();
+        const bounds = landmass.getBounds();
 
         for (let i = 0; i < numRivers; i++) {
             this.makeRiver(points, bounds);
         }
     }
 
-    makeMountainRange(x: number, y: number, size: number, boundaryPoints: { x: number; y: number }[]) {
+    makeMountainRange(
+        x: number,
+        y: number,
+        size: number,
+        boundaryPoints: { x: number; y: number }[]
+    ): void {
         const mountains: { x: number; y: number }[] = [];
 
         // place a founding mountain at the center
@@ -112,9 +123,12 @@ export class World extends Container {
         }
     }
 
-    populateMountains(numRanges: number) {
-        const points = this.landmass.getPoints();
-        const bounds = this.landmass.getBounds();
+    populateMountains(
+        landmass: Landmass,
+        numRanges: number,
+    ): void {
+        const points = landmass.getPoints();
+        const bounds = landmass.getBounds();
 
         for (let i = 0; i < numRanges; i++) {
             let mx: number, my: number;
@@ -132,7 +146,12 @@ export class World extends Container {
         }
     }
 
-    makeForest(x: number, y: number, size: number, boundaryPoints: { x: number; y: number }[]) {
+    makeForest(
+        x: number,
+        y: number,
+        size: number,
+        boundaryPoints: { x: number; y: number }[]
+    ): void {
         const trees: { x: number; y: number }[] = [];
 
         const founderCount = 2 + Math.floor(Math.random() * 4);
@@ -179,9 +198,12 @@ export class World extends Container {
         }
     }
 
-    populateTrees(numForests: number) {
-        const points = this.landmass.getPoints();
-        const bounds = this.landmass.getBounds();
+    populateTrees(
+        landmass: Landmass,
+        numForests: number,
+    ): void {
+        const points = landmass.getPoints();
+        const bounds = landmass.getBounds();
 
         for (let i = 0; i < numForests; i++) {
             // keep trying random positions until we find one inside the landmass
@@ -194,20 +216,22 @@ export class World extends Container {
             } while (!pointInPolygon(fx, fy, points) && attempts < 100);
 
             if (attempts < 100) {
-                const forestSize = 80 + Math.random() * 120;
+                const forestSize = 100;
                 this.makeForest(fx, fy, forestSize, points);
             }
         }
     }
 
-    populate() {
-        this.populateLand(1 + Math.random() * 1.5, 2 + Math.random() * 0.5);
-        this.populateRivers(0 + Math.random() * 7);
-        this.populateMountains(2 + Math.random() * 8);
-        this.populateTrees(1 + Math.random() * 9);
+    populate(worldOptions: WorldOptions): void {
+        this.populateLand(worldOptions.landmassOptionsList);
+        for (let landmass of this.landmasses) {
+            this.populateRivers(landmass, worldOptions.numRivers);
+            this.populateMountains(landmass, worldOptions.numMountainRanges);
+            this.populateTrees(landmass, worldOptions.numForests);
+        }
     }
 
     update(time: any) {
-        // update game objects each tick
+        // stem
     }
 }
