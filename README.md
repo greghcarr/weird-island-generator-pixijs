@@ -40,7 +40,7 @@ You will need [Node.js](https://nodejs.org/) installed.
 
 4. Open your browser and navigate to `http://localhost:8080` (or whichever port your dev server uses).
 
-To generate a new island, simply refresh the page.
+To generate a new island, click the "Create!" button.
 
 ## How It Works
 

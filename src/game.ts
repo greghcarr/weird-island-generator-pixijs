@@ -1,7 +1,7 @@
 import { Application } from "pixi.js";
 import { installGameFont } from "./font";
 import { World } from "./world";
-import { convertHashTo0x, OCEAN_BLUE, SAND_TAN } from "./colors";
+import { convertHashTo0x, DART_BLUE, OCEAN_BLUE, SAND_TAN } from "./colors";
 import { LandmassOptions } from "./landmass";
 import { WorldOptions } from "./types";
 
@@ -29,6 +29,8 @@ export class Game {
 
         this.populateWorld();
 
+        this.addRegenerateButton();
+
         window.addEventListener("resize", () => this.onResize());
         this.onResize();
 
@@ -45,7 +47,7 @@ export class Game {
         } as LandmassOptions;
 
         let landmassOptionsList = [
-            {...landmassOptionsTemplate},
+            { ...landmassOptionsTemplate },
         ];
 
         this.worldOptions = {
@@ -63,6 +65,35 @@ export class Game {
 
     private populateWorld() {
         this.world.populate(this.worldOptions);
+    }
+
+    private addRegenerateButton() {
+        const button = document.createElement("button");
+        button.textContent = "Create!";
+        button.style.cssText = `
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 24px;
+        font-size: 16px;
+        background: ${DART_BLUE};
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        z-index: 10;
+    `;
+
+        button.addEventListener("click", () => this.regenerate());
+        document.getElementById("pixi-container")!.appendChild(button);
+    }
+
+    private regenerate() {
+        this.world.destroy(); // remove all existing children
+        this.createWorld();
+        this.onResize();
+        this.populateWorld();
     }
 
     private onResize() {
