@@ -5,6 +5,7 @@ import { pointInPolygon } from "./helpers";
 import { Mountain } from "./mountain";
 import { River } from "./river";
 import { WorldOptions } from "./types";
+import { convertHashTo0x, SAND_TAN } from "./colors";
 
 export class World extends Container {
     private landmasses!: Landmass[];
@@ -17,11 +18,27 @@ export class World extends Container {
         this.sortableChildren = true;
     }
 
+    makeRandomLandmassOptionsList(
+        numLandmasses: number
+    ): LandmassOptions[] {
+        let optionsList: LandmassOptions[] = [];
+        for (let i = 0; i < numLandmasses; i++) {
+            optionsList.push({
+                x: this.worldWidth * Math.random(),
+                y: this.worldHeight * Math.random(),
+                width: (this.worldWidth * Math.random()) + (this.worldWidth * 0.25),
+                height: (this.worldHeight * Math.random()) + (this.worldHeight * 0.25),
+                color: convertHashTo0x(SAND_TAN),
+            });
+        }
+        return optionsList;
+    }
+
     populateLand(
         optionsList: LandmassOptions[]
     ): void {
         this.landmasses = [];
-        for (let options of optionsList){
+        for (let options of optionsList) {
             this.landmasses.push(new Landmass(options));
         }
         for (const landmass of this.landmasses) {
@@ -170,18 +187,18 @@ export class World extends Container {
         for (let gen = 0; gen < generations; gen++) {
             const currentTrees = [...trees];
             for (const parent of currentTrees) {
-                const seedCount = 100 + Math.floor(Math.random() * 0);
+                const seedCount = 1 + Math.floor(Math.random() * 3);
                 for (let s = 0; s < seedCount; s++) {
                     const angle = Math.random() * Math.PI * 2;
                     // vary distance more dramatically for irregular spread
-                    const distance = 10 + Math.random() * size * 0;
+                    const distance = 10 + Math.random() * size * 0.4;
 
                     const seedX = parent.x + Math.cos(angle) * distance;
                     const seedY = parent.y + Math.sin(angle) * distance;
 
                     // survival chance decreases with distance from forest center
                     const distFromCenter = Math.hypot(seedX - x, seedY - y);
-                    const survivalChance = Math.max(0, 0.2 - (distFromCenter / (size * 0.1)));
+                    const survivalChance = Math.max(0, 0.3 - (distFromCenter / (size * 3.0)));
                     if (Math.random() > survivalChance) continue;
 
                     if (!pointInPolygon(seedX, seedY, boundaryPoints)) continue;
@@ -223,7 +240,7 @@ export class World extends Container {
     }
 
     populate(worldOptions: WorldOptions): void {
-        this.populateLand(worldOptions.landmassOptionsList);
+        this.populateLand(this.makeRandomLandmassOptionsList(worldOptions.numLandmasses));
         for (let landmass of this.landmasses) {
             this.populateRivers(landmass, worldOptions.numRivers);
             this.populateMountains(landmass, worldOptions.numMountainRanges);

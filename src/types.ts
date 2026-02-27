@@ -1,7 +1,7 @@
 import { LandmassOptions } from "./landmass";
 
 export interface WorldOptions {
-    landmassOptionsList: LandmassOptions[],
+    numLandmasses: number,
     numRivers: number,
     numMountainRanges: number,
     numForests: number,

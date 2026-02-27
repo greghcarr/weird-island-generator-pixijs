@@ -1,8 +1,7 @@
 import { Application } from "pixi.js";
 import { installGameFont } from "./font";
 import { World } from "./world";
-import { convertHashTo0x, DART_BLUE, OCEAN_BLUE, SAND_TAN } from "./colors";
-import { LandmassOptions } from "./landmass";
+import { DART_BLUE, OCEAN_BLUE } from "./colors";
 import { WorldOptions } from "./types";
 
 export class Game {
@@ -10,8 +9,14 @@ export class Game {
     private static readonly WORLD_HEIGHT = 1000;
 
     private app: Application;
-    private worldOptions!: WorldOptions;
     private world!: World;
+
+    private worldOptions: WorldOptions = {
+        numLandmasses: 2,
+        numMountainRanges: 3,
+        numRivers: 3,
+        numForests: 3,
+    };
 
     constructor() {
         this.app = new Application();
@@ -23,11 +28,11 @@ export class Game {
         await this.app.init({ background: OCEAN_BLUE, resizeTo: window });
         document.getElementById("pixi-container")!.appendChild(this.app.canvas);
 
-        this.initWorldOptions();
-
         this.createWorld();
 
         this.populateWorld();
+
+        this.addControls();
 
         this.addRegenerateButton();
 
@@ -37,27 +42,6 @@ export class Game {
         this.app.ticker.add((time) => this.update(time));
     }
 
-    private initWorldOptions() {
-        const landmassOptionsTemplate = {
-            x: Game.WORLD_WIDTH / 2,
-            y: Game.WORLD_HEIGHT / 2,
-            width: Game.WORLD_WIDTH * 1,
-            height: Game.WORLD_HEIGHT * 1,
-            color: convertHashTo0x(SAND_TAN),
-        } as LandmassOptions;
-
-        let landmassOptionsList = [
-            { ...landmassOptionsTemplate },
-        ];
-
-        this.worldOptions = {
-            landmassOptionsList,
-            numRivers: 3,
-            numMountainRanges: 5,
-            numForests: 3,
-        } as WorldOptions;
-    }
-
     private createWorld() {
         this.world = new World(Game.WORLD_WIDTH, Game.WORLD_HEIGHT);
         this.app.stage.addChild(this.world);
@@ -65,6 +49,66 @@ export class Game {
 
     private populateWorld() {
         this.world.populate(this.worldOptions);
+    }
+
+    private makeSlider(label: string, key: keyof typeof this.worldOptions, min: number, max: number) {
+        const wrapper = document.createElement("div");
+        wrapper.style.cssText = `display: flex; flex-direction: column; gap: 4px;`;
+
+        const topRow = document.createElement("div");
+        topRow.style.cssText = `display: flex; justify-content: space-between;`;
+
+        const labelEl = document.createElement("span");
+        labelEl.textContent = label;
+
+        const valueEl = document.createElement("span");
+        valueEl.textContent = String(this.worldOptions[key]);
+
+        topRow.appendChild(labelEl);
+        topRow.appendChild(valueEl);
+
+        const slider = document.createElement("input");
+        slider.type = "range";
+        slider.min = String(min);
+        slider.max = String(max);
+        slider.value = String(this.worldOptions[key]);
+        slider.style.cssText = `width: 100%; cursor: pointer;`;
+
+        slider.addEventListener("input", () => {
+            this.worldOptions[key] = Number(slider.value);
+            valueEl.textContent = slider.value;
+        });
+
+        wrapper.appendChild(topRow);
+        wrapper.appendChild(slider);
+        return wrapper;
+    }
+
+    private addControls() {
+        const panel = document.createElement("div");
+        panel.style.cssText = `
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 16px;
+        border-radius: 8px;
+        font-family: sans-serif;
+        font-size: 14px;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 220px;
+    `;
+
+        panel.appendChild(this.makeSlider("Landmasses", "numLandmasses", 1, 4));
+        panel.appendChild(this.makeSlider("Mountain Ranges", "numMountainRanges", 0, 10));
+        panel.appendChild(this.makeSlider("Rivers", "numRivers", 0, 10));
+        panel.appendChild(this.makeSlider("Forests", "numForests", 0, 10));
+
+        document.getElementById("pixi-container")!.appendChild(panel);
     }
 
     private addRegenerateButton() {
@@ -90,10 +134,10 @@ export class Game {
     }
 
     private regenerate() {
-        this.world.destroy(); // remove all existing children
+        this.world.destroy();
         this.createWorld();
-        this.onResize();
         this.populateWorld();
+        this.onResize();
     }
 
     private onResize() {
